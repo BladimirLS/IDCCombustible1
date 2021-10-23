@@ -1,0 +1,66 @@
+﻿@page "/"
+
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+
+@using IDCCombustible1.Pages
+@inject IConduceService ConduceService
+
+
+<SfButton OnClick="ExcelExport" Content="Excel Export"></SfButton>
+<SfGrid DataSource="@Conduces" @ref="Conduces1" AllowExcelExport="true" Al Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update" })" TValue="Conduce">
+    <GridEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridEvents OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler" TValue="Conduce"></GridEvents>
+    <GridColumns>
+        <GridColumn Field="@nameof(Conduce.Id)" IsPrimaryKey="true" IsIdentity="true" Visible="false"></GridColumn>
+        <GridColumn  Field="@nameof(Conduce.Ficha)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Fecha_Registro)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Fecha_Emision_Documento)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Numero_Documento)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Codigo_Activo_Fijo)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Numero_Documento_Externo)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Cantidad)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.Kilometraje)" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(Conduce.AF_Fecha_Registro)" Width="150"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+@code
+{
+    private SfGrid<Conduce> Conduces1 { get; set; }
+    public IEnumerable<Conduce> Conduces { get; set; }
+    protected override void OnInitialized()
+    {
+        Conduces = ConduceService.GetConduces();
+    }
+    public void ActionBeginHandler(ActionEventArgs<Conduce> Args)
+    {
+        if (Args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            if (Args.Action == "Add")
+            {
+                ConduceService.InsertConduce(Args.Data);
+            }
+            else
+            {
+                ConduceService.UpdateConduce(Args.Data.Id, Args.Data);
+            }
+        }
+        if (Args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+        {
+            ConduceService.DeleteConduce(Args.Data.Id);
+        }
+    }
+    public void ActionCompleteHandler(ActionEventArgs<Conduce> Args)
+    {
+        if (Args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            Conduces = ConduceService.GetConduces(); //to fetch the updated data from db to Grid
+        }
+    }
+
+    public async Task ExcelExport()
+    {
+        await this.Conduces1.ExcelExport();
+    }
+}
